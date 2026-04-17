@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="My Workouts">
+<title>My Workout App</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+body{font-family:-apple-system,BlinkMacSystemFont,'Helvetica Neue',sans-serif;background:#f2f2f7;min-height:100vh;padding-bottom:80px}
+.header{background:#fff;padding:16px 16px 12px;border-bottom:0.5px solid #c6c6c8;position:sticky;top:0;z-index:100}
+.header h1{font-size:22px;font-weight:600;color:#000}
+.header p{font-size:13px;color:#8e8e93;margin-top:2px}
+.bottom-nav{position:fixed;bottom:0;left:0;right:0;background:#fff;border-top:0.5px solid #c6c6c8;display:flex;padding-bottom:env(safe-area-inset-bottom)}
+.nav-btn{flex:1;padding:8px 4px 10px;background:none;border:none;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:3px;font-size:10px;color:#8e8e93;font-family:-apple-system,BlinkMacSystemFont,'Helvetica Neue',sans-serif}
+.nav-btn.active{color:#007AFF}
+.nav-icon{font-size:22px;line-height:1}
+.screen{display:none;padding:16px}
+.screen.active{display:block}
+.card{background:#fff;border-radius:12px;padding:14px 16px;margin-bottom:12px;box-shadow:0 1px 3px rgba(0,0,0,0.08)}
+.card h3{font-size:15px;font-weight:600;color:#000;margin-bottom:6px}
+.section-label{font-size:13px;font-weight:600;color:#8e8e93;text-transform:uppercase;letter-spacing:0.4px;margin:16px 0 6px 4px}
+.badge{display:inline-block;font-size:11px;font-weight:600;padding:3px 9px;border-radius:20px;margin-right:4px;margin-bottom:4px}
+.badge-run{background:#e1f0ff;color:#0055cc}
+.badge-core{background:#e3f5e1;color:#1a6b10}
+.badge-stretch{background:#fff3e0;color:#7a4700}
+.badge-bike{background:#ede7f6;color:#4527a0}
+.badge-weights{background:#fce4ec;color:#880e35}
+.ex-row{padding:10px 0;border-bottom:0.5px solid #e5e5ea}
+.ex-row:last-of-type{border:none}
+.ex-top{display:flex;justify-content:space-between;align-items:flex-start;gap:10px}
+.ex-name{font-size:14px;color:#000;flex:1;line-height:1.3}
+.ex-detail{font-size:12px;color:#8e8e93;margin-top:3px}
+.how-to-btn{font-size:12px;color:#007AFF;text-decoration:none;padding:4px 10px;border:1px solid #007AFF;border-radius:8px;white-space:nowrap;flex-shrink:0}
+.tag{font-size:10px;font-weight:600;padding:2px 6px;border-radius:4px;margin-left:4px;vertical-align:middle}
+.tag-shoulder{background:#fff3e0;color:#7a4700}
+.tag-knee{background:#ede7f6;color:#4527a0}
+.notice{background:#fff8e1;border-left:4px solid #FFA000;border-radius:8px;padding:10px 12px;margin-bottom:12px}
+.notice p{font-size:13px;color:#5d4037;line-height:1.5}
+.alarm-row{display:flex;align-items:center;justify-content:space-between;padding:10px 0;border-bottom:0.5px solid #e5e5ea}
+.alarm-row:last-child{border:none}
+.alarm-time{font-size:17px;font-weight:500;color:#000}
+.alarm-label{font-size:12px;color:#8e8e93;margin-top:1px}
+.toggle-wrap{position:relative;width:51px;height:31px}
+.toggle-input{opacity:0;width:0;height:0;position:absolute}
+.toggle-slider{position:absolute;inset:0;background:#e5e5ea;border-radius:15.5px;cursor:pointer;transition:background .2s}
+.toggle-slider::after{content:'';position:absolute;width:27px;height:27px;border-radius:50%;background:#fff;top:2px;left:2px;transition:transform .2s;box-shadow:0 2px 4px rgba(0,0,0,0.3)}
+.toggle-input:checked+.toggle-slider{background:#34C759}
+.toggle-input:checked+.toggle-slider::after{transform:translateX(20px)}
+.cal-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px}
+.cal-header h2{font-size:17px;font-weight:600;color:#000}
+.cal-arrow{background:none;border:none;font-size:20px;color:#007AFF;cursor:pointer;padding:4px 8px}
+.cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:3px;margin-bottom:16px}
+.cal-dow{text-align:center;font-size:11px;font-weight:600;color:#8e8e93;padding-bottom:6px}
+.cal-day{aspect-ratio:1;display:flex;flex-direction:column;align-items:center;justify-content:center;border-radius:10px;font-size:13px;color:#8e8e93}
+.cal-day.today{background:#007AFF;color:#fff;font-weight:600}
+.cal-day.has-workout{background:#f2f2f7;color:#000}
+.cal-day.completed{background:#e3f5e1;color:#1a6b10;font-weight:600}
+.cal-dot{width:4px;height:4px;border-radius:50%;margin-top:2px}
+.cal-day.today .cal-dot{background:#fff}
+.cal-day.has-workout .cal-dot{background:#007AFF}
+.cal-day.completed .cal-dot{background:#34C759}
+.log-row{display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:0.5px solid #e5e5ea}
+.log-row:last-child{border:none}
+.log-date{font-size:13px;color:#8e8e93;min-width:54px}
+.log-label{flex:1;font-size:14px;color:#000}
+.log-check{color:#34C759;font-size:18px}
+.rtabs{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:14px}
+.rtab{font-size:13px;font-weight:500;padding:6px 13px;border-radius:20px;border:1px solid #c6c6c8;background:#fff;cursor:pointer;color:#3c3c43;font-family:-apple-system,BlinkMacSystemFont,'Helvetica Neue',sans-serif}
+.rtab.active{background:#007AFF;color:#fff;border-color:#007AFF}
+.stat-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:4px}
+.stat-card{background:#fff;border-radius:12px;padding:12px 14px}
+.stat-val{font-size:28px;font-weight:700;color:#000}
+.stat-lbl{font-size:12px;color:#8e8e93;margin-top:2px}
+.goal-row{padding:10px 0;border-bottom:0.5px solid #e5e5ea}
+.goal-row:last-child{border:none}
+.goal-top{display:flex;justify-content:space-between;align-items:center;margin-bottom:6px}
+.goal-name{font-size:14px;color:#000}
+.goal-pct{font-size:13px;font-weight:600;color:#007AFF}
+.prog-bar{height:6px;border-radius:3px;background:#e5e5ea;overflow:hidden}
+.prog-fill{height:100%;border-radius:3px;background:#007AFF}
+.prog-fill.amber{background:#FF9500}
+.done-btn{width:100%;padding:13px;border-radius:12px;border:none;font-size:15px;font-weight:600;cursor:pointer;margin-top:14px;font-family:-apple-system,BlinkMacSystemFont,'Helvetica Neue',sans-serif}
+.done-btn.pending{background:#007AFF;color:#fff}
+.done-btn.complete{background:#e3f5e1;color:#1a6b10}
+.rest-card{text-align:center;padding:24px 16px}
+.rest-emoji{font-size:48px;margin-bottom:10px}
+.rest-title{font-size:17px;font-weight:600;color:#000;margin-bottom:6px}
+.rest-sub{font-size:14px;color:#8e8e93;line-height:1.5}
+.sched-row{padding:10px 0;border-bottom:0.5px solid #e5e5ea}
+.sched-row:last-child{border:none}
+.sched-day{font-size:14px;font-weight:600;color:#000}
+.sched-work{font-size:12px;color:#8e8e93}
+.sched-workout{font-size:13px;color:#007AFF;margin-top:2px}
+</style>
+</head>
+<body>
+<div class="header">
+  <h1 id="hdr-title">My Workout App</h1>
+  <p id="hdr-sub"></p>
+</div>
+<div id="screen-today" class="screen active">
+  <div class="notice"><p><strong>Reminder:</strong> Left shoulder healing — avoid rowing. Knee-safe modifications applied throughout.</p></div>
+  <div id="today-content"></div>
+  <div class="section-label">Reminders</div>
+  <div class="card" id="alarms-card"></div>
+</div>
+<div id="screen-calendar" class="screen">
+  <div class="card">
+    <div class="cal-header">
+      <button class="cal-arrow" onclick="changeMonth(-1)">&#8249;</button>
+      <h2 id="cal-label"></h2>
+      <button class="cal-arrow" onclick="changeMonth(1)">&#8250;</button>
+    </div>
+    <div class="cal-grid" id="cal-grid"></div>
+  </div>
+  <div class="section-label">Recent workouts</div>
+  <div class="card" id="log-list"></div>
+</div>
+<div id="screen-routines" class="screen">
+  <div class="rtabs">
+    <button class="rtab active" onclick="showRoutine('run',event)">Run</button>
+    <button class="rtab" onclick="showRoutine('core',event)">Core</button>
+    <button class="rtab" onclick="showRoutine('shoulder',event)">Shoulder</button>
+    <button class="rtab" onclick="showRoutine('bike',event)">Bike</button>
+    <button class="rtab" onclick="showRoutine('weights',event)">Weights</button>
+  </div>
+  <div id="routine-content"></div>
+</div>
+<div id="screen-progress" class="screen">
+  <div class="section-label">Stats</div>
+  <div class="stat-grid">
+    <div class="stat-card"><div class="stat-val" id="s-week">0</div><div class="stat-lbl">This week</div></div>
+    <div class="stat-card"><div class="stat-val" id="s-streak">0</div><div class="stat-lbl">Day streak</div></div>
+    <div class="stat-card"><div class="stat-val" id="s-month">0</div><div class="stat-lbl">This month</div></div>
+    <div class="stat-card"><div class="stat-val" id="s-total">0</div><div class="stat-lbl">Total logged</div></div>
+  </div>
+  <div class="section-label">Goals</div>
+  <div class="card">
+    <div class="goal-row"><div class="goal-top"><span class="goal-name">C25K program</span><span class="goal-pct">33%</span></div><div class="prog-bar"><div class="prog-fill" style="width:33%"></div></div><div style="font-size:11px;color:#8e8e93;margin-top:4px">Week 3 of 9</div></div>
+    <div class="goal-row"><div class="goal-top"><span class="goal-name">200 sit-ups</span><span class="goal-pct">22%</span></div><div class="prog-bar"><div class="prog-fill" style="width:22%"></div></div><div style="font-size:11px;color:#8e8e93;margin-top:4px">Level 2</div></div>
+    <div class="goal-row"><div class="goal-top"><span class="goal-name">Shoulder recovery</span><span class="goal-pct" style="color:#FF9500">In progress</span></div><div class="prog-bar"><div class="prog-fill amber" style="width:40%"></div></div><div style="font-size:11px;color:#8e8e93;margin-top:4px">Active rehab phase</div></div>
+  </div>
+  <div class="section-label">Weekly schedule</div>
+  <div class="card" id="sched-list"></div>
+</div>
+<nav class="bottom-nav">
+  <button class="nav-btn active" onclick="showScreen('today',this)"><span class="nav-icon">🏠</span>Today</button>
+  <button class="nav-btn" onclick="showScreen('calendar',this)"><span class="nav-icon">📅</span>Calendar</button>
+  <button class="nav-btn" onclick="showScreen('routines',this)"><span class="nav-icon">📋</span>Routines</button>
+  <button class="nav-btn" onclick="showScreen('progress',this)"><span class="nav-icon">📈</span>Progress</button>
+</nav>
+<script>
+const MONTHS=['January','February','March','April','May','June','July','August','September','October','November','December'];
+const DAYS=['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+const LINKS={'Pendulum swings':'https://www.youtube.com/watch?v=_4ysRhkRmw8','Doorway pec stretch':'https://www.youtube.com/watch?v=2MSSUKbiwmc','Cross-body shoulder stretch':'https://www.youtube.com/watch?v=9L3_dBUnMCo','Thoracic spine rotation':'https://www.youtube.com/watch?v=Bq9s3jEPMQo','Gentle foam roll — upper back':'https://www.youtube.com/watch?v=oBu9nOPPY0Y','C25K session':'https://www.c25k.com/c25k_plan.html','Sit-ups (200 app)':'https://www.200situps.com/','Dead bug':'https://www.youtube.com/watch?v=4XLEnwUr1d8','Bird-dog':'https://www.youtube.com/watch?v=wiFNA3sqjCA','Glute bridge':'https://www.youtube.com/watch?v=OUgsJ8-Vi0E','Exercise bike':'https://www.youtube.com/watch?v=lJbQScZgvlI','Shoulder CARS':'https://www.youtube.com/watch?v=VTj9zMN2cLk','Side-lying external rotation':'https://www.youtube.com/watch?v=HWlBJwdTmig','Seated ankle pumps & knee circles':'https://www.youtube.com/watch?v=qqLmRMLbHyk','Plank (forearm)':'https://www.youtube.com/watch?v=pSHjTRCQxIw','Bicycle crunch':'https://www.youtube.com/watch?v=9FGilxCbdz8','Hip flexor stretch':'https://www.youtube.com/watch?v=YqF_Z5jvNpg','Leg press':'https://www.youtube.com/watch?v=IZxyjW7MPJQ','Leg curl':'https://www.youtube.com/watch?v=1Tq3QdYUuHs','Seated row (light)':'https://www.youtube.com/watch?v=GZbfZ033f74','Cable face pull / band pull-apart':'https://www.youtube.com/watch?v=rep-qVOkqgk','Calf raises':'https://www.youtube.com/watch?v=-M4-G8p1fCI','Stretching cool-down':'https://www.youtube.com/watch?v=L_xrDAtykMI','Warm-up walk':'https://www.youtube.com/watch?v=YkJwCoxJKYk','Cool-down walk':'https://www.youtube.com/watch?v=ip1OHmO3GaI','Standing quad stretch':'https://www.youtube.com/watch?v=OIpgJGBTouc','Calf stretch on wall':'https://www.youtube.com/watch?v=g78bpU3fqrk','200 Sit-Ups app session':'https://www.200situps.com/','Forearm plank':'https://www.youtube.com/watch?v=pSHjTRCQxIw','Sleeper stretch':'https://www.youtube.com/watch?v=2PoqQAIiMGk','CARS — shoulder':'https://www.youtube.com/watch?v=VTj9zMN2cLk','Band pull-apart (light)':'https://www.youtube.com/watch?v=rep-qVOkqgk','Thoracic foam roll':'https://www.youtube.com/watch?v=oBu9nOPPY0Y','Leg extension (light)':'https://www.youtube.com/watch?v=YyvSfVjQeL0','Seated calf raise':'https://www.youtube.com/watch?v=JbyjNymZOt0','Cable face pull (light)':'https://www.youtube.com/watch?v=rep-qVOkqgk','Full stretch cool-down':'https://www.youtube.com/watch?v=L_xrDAtykMI','Quad & hip flexor stretch':'https://www.youtube.com/watch?v=YqF_Z5jvNpg','C25K interval session':'https://www.c25k.com/c25k_plan.html','Intervals (optional)':'https://www.youtube.com/watch?v=lJbQScZgvlI'};
+const PLAN={0:null,1:{label:'Rest / Shoulder stretch',types:['stretch'],exercises:[{name:'Pendulum swings',detail:'3×20 reps — gravity only',tag:'shoulder'},{name:'Doorway pec stretch',detail:'Hold 30s each side × 3',tag:'shoulder'},{name:'Cross-body shoulder stretch',detail:'Hold 30s each side × 3',tag:'shoulder'},{name:'Thoracic spine rotation',detail:'10 reps each side × 2',tag:'shoulder'},{name:'Gentle foam roll — upper back',detail:'90 seconds'}]},2:{label:'C25K + Core (after work)',types:['run','core'],exercises:[{name:'C25K session',detail:'Per app schedule'},{name:'Sit-ups (200 app)',detail:'Per app schedule'},{name:'Dead bug',detail:'3×10 reps'},{name:'Bird-dog',detail:'3×10 each side'},{name:'Glute bridge',detail:'3×15',tag:'knee'}]},3:null,4:{label:'Bike + Shoulder rehab',types:['bike','stretch'],exercises:[{name:'Exercise bike',detail:'25–35 min, moderate resistance'},{name:'Pendulum swings',detail:'3×20 reps',tag:'shoulder'},{name:'Shoulder CARS',detail:'5 slow reps each direction × 2',tag:'shoulder'},{name:'Side-lying external rotation',detail:'2×12 — lightest weight only',tag:'shoulder'},{name:'Seated ankle pumps & knee circles',detail:'10 reps each',tag:'knee'}]},5:{label:'C25K + Core (after work)',types:['run','core'],exercises:[{name:'C25K session',detail:'Per app schedule'},{name:'Sit-ups (200 app)',detail:'Per app schedule'},{name:'Plank (forearm)',detail:'3×20–30s'},{name:'Bicycle crunch',detail:'3×15 each side'},{name:'Hip flexor stretch',detail:'30s each side × 2',tag:'knee'}]},6:{label:'Weights + stretch (after work)',types:['weights','stretch'],exercises:[{name:'Leg press',detail:'3×12 — moderate weight',tag:'knee'},{name:'Leg curl',detail:'3×12'},{name:'Seated row (light)',detail:'3×10 — stop if shoulder hurts',tag:'shoulder'},{name:'Cable face pull / band pull-apart',detail:'3×15',tag:'shoulder'},{name:'Calf raises',detail:'3×20'},{name:'Stretching cool-down',detail:'10 min full body'}]}};
+const ALARMS={0:[],1:[{time:'7:00 AM',label:'Shoulder stretches — before work'}],2:[{time:'6:15 PM',label:'C25K + Core — after work'}],3:[],4:[{time:'6:15 PM',label:'Bike + Shoulder rehab — after work'}],5:[{time:'5:45 PM',label:'C25K + Core — after work'}],6:[{time:'3:15 PM',label:'Weights + stretch — after work'}]};
+const ROUTINES={run:{title:'C25K treadmill session',desc:'Follow your C25K app. Walk/run intervals as scheduled. Keep pace conversational. Light knee brace if needed.',exercises:[{name:'Warm-up walk',detail:'5 min, 2.5–3 mph'},{name:'C25K interval session',detail:'Per app (typically 20–30 min)'},{name:'Cool-down walk',detail:'5 min, 2.0–2.5 mph'},{name:'Standing quad stretch',detail:'30s each leg',tag:'knee'},{name:'Calf stretch on wall',detail:'30s each side',tag:'knee'}]},core:{title:'Core & sit-ups',desc:'Follow the 200 Sit-Ups app. Avoid overhead movements that load the shoulder.',exercises:[{name:'200 Sit-Ups app session',detail:'Per current level'},{name:'Dead bug',detail:'3×10 — exhale on extend'},{name:'Bird-dog',detail:'3×10 each side'},{name:'Glute bridge',detail:'3×15',tag:'knee'},{name:'Forearm plank',detail:'3×20–30s',tag:'shoulder'}]},shoulder:{title:'Left shoulder rehab',desc:'Gentle, pain-free movements only. Stop immediately if sharp pain. Do daily if possible.',exercises:[{name:'Pendulum swings',detail:'3×20 — gravity only',tag:'shoulder'},{name:'Doorway pec stretch',detail:'Hold 30s each side',tag:'shoulder'},{name:'Cross-body shoulder stretch',detail:'Hold 30s each side',tag:'shoulder'},{name:'Sleeper stretch',detail:'30s each side',tag:'shoulder'},{name:'CARS — shoulder',detail:'5 slow circles each direction',tag:'shoulder'},{name:'Band pull-apart (light)',detail:'2×15',tag:'shoulder'},{name:'Thoracic foam roll',detail:'60–90s',tag:'shoulder'}]},bike:{title:'Exercise bicycle',desc:'Great cardio without knee or shoulder impact. Keep cadence smooth.',exercises:[{name:'Warm-up walk',detail:'5 min easy before mounting'},{name:'Exercise bike',detail:'20–30 min, moderate resistance, 70–80 rpm'},{name:'Intervals (optional)',detail:'4× 1 min harder / 2 min easy'},{name:'Quad & hip flexor stretch',detail:'30s each side after',tag:'knee'}]},weights:{title:'Weight machine',desc:'Focus on lower body while shoulder heals. Avoid overhead press and painful pulling movements.',exercises:[{name:'Leg press',detail:'3×12 — feet hip-width',tag:'knee'},{name:'Leg extension (light)',detail:'3×12 — stop if knee pain',tag:'knee'},{name:'Leg curl',detail:'3×12'},{name:'Seated calf raise',detail:'3×20'},{name:'Seated row (light)',detail:'3×10 — elbow close to body',tag:'shoulder'},{name:'Cable face pull (light)',detail:'3×15',tag:'shoulder'},{name:'Full stretch cool-down',detail:'10 min'}]}};
+const SCHED=[{day:'Mon',work:'8am–8pm',workout:'Shoulder stretches — 7:00 AM'},{day:'Tue',work:'7am–6pm',workout:'C25K + Core — 6:15 PM'},{day:'Wed',work:'Off',workout:'Rest day'},{day:'Thu',work:'8am–6pm',workout:'Bike + Shoulder — 6:15 PM'},{day:'Fri',work:'7am–5:30pm',workout:'C25K + Core — 5:45 PM'},{day:'Sat',work:'7am–3pm',workout:'Weights + stretch — 3:15 PM'},{day:'Sun',work:'Off',workout:'Rest day'}];
+let completed={},alarmStates={},calMonth,calYear;
+try{completed=JSON.parse(localStorage.getItem('wk')||'{}');}catch(e){}
+function save(){try{localStorage.setItem('wk',JSON.stringify(completed));}catch(e){}}
+function tagHtml(t){if(!t)return '';if(t==='shoulder')return '<span class="tag tag-shoulder">shoulder care</span>';if(t==='knee')return '<span class="tag tag-knee">knee-friendly</span>';return '';}
+function badgeHtml(type){const m={run:['badge-run','Run'],core:['badge-core','Core'],stretch:['badge-stretch','Shoulder rehab'],bike:['badge-bike','Bike'],weights:['badge-weights','Weights']};const[cls,lbl]=m[type]||['',''];return `<span class="badge ${cls}">${lbl}</span>`;}
+function linkBtn(name){const url=LINKS[name];if(!url)return '';return `<a href="${url}" target="_blank" class="how-to-btn">How to</a>`;}
+function showScreen(id,btn){document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));document.querySelectorAll('.nav-btn').forEach(b=>b.classList.remove('active'));document.getElementById('screen-'+id).classList.add('active');if(btn)btn.classList.add('active');const now=new Date();document.getElementById('hdr-title').textContent=({today:'My Workout App',calendar:'Calendar',routines:'Routines',progress:'Progress'})[id];document.getElementById('hdr-sub').textContent=id==='today'?`${DAYS[now.getDay()]}, ${MONTHS[now.getMonth()]} ${now.getDate()}`:'';if(id==='calendar')renderCalendar();}
+function renderToday(){const now=new Date(),dow=now.getDay(),key=now.toDateString(),plan=PLAN[dow],isDone=!!completed[key],tc=document.getElementById('today-content'),ac=document.getElementById('alarms-card');if(!plan){tc.innerHTML='<div class="card"><div class="rest-card"><div class="rest-emoji">🛋</div><div class="rest-title">Rest day</div><div class="rest-sub">Recovery is part of training.<br>Stay hydrated and do gentle shoulder stretches if you feel up to it.</div></div></div>';ac.innerHTML='<p style="font-size:14px;color:#8e8e93">No workout reminders today.</p>';return;}const exHtml=plan.exercises.map(e=>`<div class="ex-row"><div class="ex-top"><span class="ex-name">${e.name}${tagHtml(e.tag)}</span>${linkBtn(e.name)}</div><div class="ex-detail">${e.detail}</div></div>`).join('');tc.innerHTML=`<div style="margin-bottom:8px">${plan.types.map(badgeHtml).join('')}</div><div class="card"><h3>${plan.label}</h3><div style="margin-top:10px">${exHtml}</div><button class="done-btn ${isDone?'complete':'pending'}" onclick="markDone()">${isDone?'✓ Completed today!':'Mark as done'}</button></div>`;const da=ALARMS[dow]||[];if(!da.length){ac.innerHTML='<p style="font-size:14px;color:#8e8e93">No reminders today.</p>';return;}ac.innerHTML=da.map((a,i)=>{const k=`${dow}-${i}`;if(alarmStates[k]===undefined)alarmStates[k]=true;return `<div class="alarm-row"><div><div class="alarm-time">${a.time}</div><div class="alarm-label">${a.label}</div></div><label class="toggle-wrap"><input type="checkbox" class="toggle-input" ${alarmStates[k]?'checked':''} onchange="alarmStates['${k}']=this.checked"><span class="toggle-slider"></span></label></div>`;}).join('');}
+function markDone(){completed[new Date().toDateString()]=true;save();renderToday();updateStats();}
+function renderCalendar(){if(calMonth===undefined){calMonth=new Date().getMonth();calYear=new Date().getFullYear();}document.getElementById('cal-label').textContent=`${MONTHS[calMonth]} ${calYear}`;const grid=document.getElementById('cal-grid');grid.innerHTML=DAYS.map(d=>`<div class="cal-dow">${d[0]}</div>`).join('');const first=new Date(calYear,calMonth,1).getDay(),days=new Date(calYear,calMonth+1,0).getDate(),today=new Date();for(let i=0;i<first;i++)grid.innerHTML+='<div></div>';for(let d=1;d<=days;d++){const dt=new Date(calYear,calMonth,d),dow=dt.getDay(),isToday=dt.toDateString()===today.toDateString(),isDone=!!completed[dt.toDateString()],hasPlan=!!PLAN[dow];let cls='cal-day';if(isToday)cls+=' today';else if(isDone)cls+=' completed';else if(hasPlan)cls+=' has-workout';grid.innerHTML+=`<div class="${cls}"><span>${d}</span>${hasPlan?'<div class="cal-dot"></div>':''}</div>`;}const log=document.getElementById('log-list'),entries=Object.keys(completed).sort((a,b)=>new Date(b)-new Date(a)).slice(0,8);log.innerHTML=entries.length?entries.map(d=>{const dt=new Date(d),p=PLAN[dt.getDay()];return `<div class="log-row"><span class="log-date">${MONTHS[dt.getMonth()].slice(0,3)} ${dt.getDate()}</span><span class="log-label">${p?.label||'Workout'}</span><span class="log-check">✓</span></div>`;}).join(''):'<p style="font-size:14px;color:#8e8e93">No workouts logged yet!</p>';}
+function changeMonth(dir){calMonth+=dir;if(calMonth>11){calMonth=0;calYear++;}if(calMonth<0){calMonth=11;calYear--;}renderCalendar();}
+function showRoutine(key,e){document.querySelectorAll('.rtab').forEach(t=>t.classList.remove('active'));if(e&&e.target)e.target.classList.add('active');const r=ROUTINES[key];document.getElementById('routine-content').innerHTML=`<div class="card"><h3>${r.title}</h3><p style="font-size:13px;color:#8e8e93;margin:6px 0 12px;line-height:1.5">${r.desc}</p>${r.exercises.map(ex=>`<div class="ex-row"><div class="ex-top"><span class="ex-name">${ex.name}${tagHtml(ex.tag)}</span>${linkBtn(ex.name)}</div><div class="ex-detail">${ex.detail}</div></div>`).join('')}</div>`;}
+function updateStats(){const now=new Date(),ws=new Date(now);ws.setDate(now.getDate()-now.getDay());ws.setHours(0,0,0,0);const keys=Object.keys(completed);let week=0,month=0;keys.forEach(d=>{const dt=new Date(d);if(dt>=ws)week++;if(dt.getMonth()===now.getMonth()&&dt.getFullYear()===now.getFullYear())month++;});document.getElementById('s-week').textContent=week;document.getElementById('s-month').textContent=month;document.getElementById('s-total').textContent=keys.length;let streak=0,chk=new Date();chk.setHours(0,0,0,0);while(completed[chk.toDateString()]){streak++;chk.setDate(chk.getDate()-1);}document.getElementById('s-streak').textContent=streak;}
+function renderSched(){document.getElementById('sched-list').innerHTML=SCHED.map(s=>`<div class="sched-row"><div><span class="sched-day">${s.day}</span> <span class="sched-work">${s.work}</span></div><div class="sched-workout">${s.workout}</div></div>`).join('');}
+const now=new Date();document.getElementById('hdr-sub').textContent=`${DAYS[now.getDay()]}, ${MONTHS[now.getMonth()]} ${now.getDate()}`;
+renderToday();showRoutine('run',null);document.querySelector('.rtab').classList.add('active');updateStats();renderSched();
+</script>
+</body>
+</html>
